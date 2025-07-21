@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Immigration Ethics Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .score-display {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .question-container {
+            margin-bottom: 30px;
+        }
+        
+        .question {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .options {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .option {
+            background: #f8f9fa;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .option:hover {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+        
+        .option.selected {
+            background: #bbdefb;
+            border-color: #1976d2;
+        }
+        
+        .option.correct {
+            background: #c8e6c9;
+            border-color: #4caf50;
+            color: #2e7d32;
+        }
+        
+        .option.incorrect {
+            background: #ffcdd2;
+            border-color: #f44336;
+            color: #c62828;
+        }
+        
+        .explanation {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        button {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #1976d2;
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .final-results {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .final-score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #4caf50;
+            margin-bottom: 20px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏛️ Immigration Ethics Quiz</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 30px;">
+            Test your knowledge of Module 2: Ethics and Professional Responsibility
+        </p>
+        
+        <div class="score-display">
+            <strong>Question <span id="current-q">1</span> of <span id="total-q">10</span> | 
+            Score: <span id="score">0</span> | 
+            Streak: <span id="streak">0</span></strong>
+        </div>
+        
+        <div id="quiz-section">
+            <div class="question-container">
+                <div class="question" id="question-text"></div>
+                <ul class="options" id="options-list"></ul>
+                <div id="explanation" class="explanation hidden"></div>
+            </div>
+            
+            <div class="buttons">
+                <button id="submit-btn" onclick="submitAnswer()" disabled>Submit Answer</button>
+                <button id="next-btn" onclick="nextQuestion()" class="hidden">Next Question</button>
+            </div>
+        </div>
+        
+        <div id="results-section" class="hidden">
+            <div class="final-results">
+                <div class="final-score" id="final-percentage"></div>
+                <div id="final-message" style="font-size: 20px; margin-bottom: 20px;"></div>
+                <button onclick="restartQuiz()">Take Quiz Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Quiz data
+        const questions = [
+            {
+                question: "According to ABA Model Rule 5.3, what must attorneys do regarding paralegal supervision?",
+                options: [
+                    "Check paralegal work monthly",
+                    "Actively know what paralegals are doing and guide their work",
+                    "Let paralegals work independently",
+                    "Only supervise on complex cases"
+                ],
+                correct: 1,
+                explanation: "ABA Rule 5.3 requires attorneys to actively know what paralegals are doing and guide their performance, ensuring all work complies with ethical obligations."
+            },
+            {
+                question: "What should a paralegal do if someone asks whether the firm represents a specific client?",
+                options: [
+                    "Confirm if they are a current client",
+                    "Say 'I cannot confirm or deny'",
+                    "Ask why they need to know",
+                    "Transfer the call immediately"
+                ],
+                correct: 1,
+                explanation: "Client names and representation status are confidential. The standard response should be 'I cannot confirm or deny' to protect confidentiality."
+            },
+            {
+                question: "Under Rule 1.15, client funds must be:",
+                options: [
+                    "Mixed with lawyer funds for easier management",
+                    "Kept in a separate trust account",
+                    "Only separated for large amounts",
+                    "Handled by the office manager"
+                ],
+                correct: 1,
+                explanation: "Rule 1.15 requires client funds to be kept separate from lawyer's personal funds in a designated trust account."
+            },
+            {
+                question: "What is the #1 cause of ethics complaints against attorneys?",
+                options: [
+                    "Billing disputes",
+                    "Conflicts of interest", 
+                    "Poor communication with clients",
+                    "Missing deadlines"
+                ],
+                correct: 2,
+                explanation: "Communication problems are the leading cause of ethics violations and grievances against attorneys."
+            },
+            {
+                question: "A paralegal serving as a translator should:",
+                options: [
+                    "Provide additional context to help clients",
+                    "Give legal advice when attorneys aren't present",
+                    "Limit themselves to direct translation and identify as non-lawyer",
+                    "Act as the client's advocate"
+                ],
+                correct: 2,
+                explanation: "Translators must identify as non-lawyers, avoid giving legal advice, and limit themselves to direct translation without adding extra information."
+            },
+            {
+                question: "When should important deadlines be calendared?",
+                options: [
+                    "On the exact due date",
+                    "A few days or week before the deadline",
+                    "Only for court dates",
+                    "Let attorneys handle all calendaring"
+                ],
+                correct: 1,
+                explanation: "Never calendar on the due date itself. Set reminders days or weeks in advance and schedule actual work time, not just the deadline."
+            },
+            {
+                question: "In immigration dual representation, who might be represented together?",
+                options: [
+                    "Two competing companies",
+                    "An employer and their employee in the same petition",
+                    "A client and their attorney",
+                    "Two family members in different cases"
+                ],
+                correct: 1,
+                explanation: "Dual representation commonly occurs when representing both an employer and employee in the same immigration petition."
+            },
+            {
+                question: "What documents must be sent to clients during representation?",
+                options: [
+                    "Only final USCIS decisions",
+                    "Only favorable documents",
+                    "All documents filed with government and all government correspondence",
+                    "Documents only if requested"
+                ],
+                correct: 2,
+                explanation: "Attorneys must send copies of everything filed with the government and all correspondence received from the government."
+            },
+            {
+                question: "If a paralegal makes a mistake, they should:",
+                options: [
+                    "Fix it quietly without telling anyone",
+                    "Immediately inform the supervising attorney",
+                    "Wait to see if anyone notices",
+                    "Ask a colleague for advice first"
+                ],
+                correct: 1,
+                explanation: "Transparency is crucial. Paralegals must immediately inform supervising attorneys of any mistakes to protect client interests and the attorney's license."
+            },
+            {
+                question: "Client files belong to:",
+                options: [
+                    "The law firm that created them",
+                    "The attorney who worked on the case",
+                    "The client, who has right to receive them upon request",
+                    "Whoever paid the legal fees"
+                ],
+                correct: 2,
+                explanation: "In most states, clients own their case files and attorneys have a duty to provide them timely upon request."
+            }
+        ];
+
+        // Game state
+        let currentQuestion = 0;
+        let score = 0;
+        let streak = 0;
+        let selectedAnswer = null;
+        let answered = false;
+
+        // Initialize game
+        function init() {
+            displayQuestion();
+            updateScore();
+        }
+
+        function displayQuestion() {
+            const q = questions[currentQuestion];
+            document.getElementById('question-text').textContent = q.question;
+            
+            const optionsList = document.getElementById('options-list');
+            optionsList.innerHTML = '';
+            
+            q.options.forEach((option, index) => {
+                const li = document.createElement('li');
+                li.className = 'option';
+                li.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+                li.onclick = () => selectOption(index, li);
+                optionsList.appendChild(li);
+            });
+            
+            // Reset state
+            selectedAnswer = null;
+            answered = false;
+            document.getElementById('submit-btn').disabled = true;
+            document.getElementById('submit-btn').classList.remove('hidden');
+            document.getElementById('next-btn').classList.add('hidden');
+            document.getElementById('explanation').classList.add('hidden');
+        }
+
+        function selectOption(index, element) {
+            if (answered) return;
+            
+            // Remove previous selection
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Select current option
+            element.classList.add('selected');
+            selectedAnswer = index;
+            document.getElementById('submit-btn').disabled = false;
+        }
+
+        function submitAnswer() {
+            if (selectedAnswer === null || answered) return;
+            
+            answered = true;
+            const q = questions[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            const isCorrect = selectedAnswer === q.correct;
+            
+            // Show correct/incorrect
+            options[q.correct].classList.add('correct');
+            if (!isCorrect) {
+                options[selectedAnswer].classList.add('incorrect');
+            }
+            
+            // Update score
+            if (isCorrect) {
+                score++;
+                streak++;
+            } else {
+                streak = 0;
+            }
+            
+            // Show explanation
+            const explanation = document.getElementById('explanation');
+            explanation.innerHTML = `
+                <strong>${isCorrect ? '✅ Correct!' : '❌ Incorrect'}</strong><br>
+                ${q.explanation}
+            `;
+            explanation.classList.remove('hidden');
+            
+            // Update buttons
+            document.getElementById('submit-btn').classList.add('hidden');
+            document.getElementById('next-btn').classList.remove('hidden');
+            
+            updateScore();
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            
+            if (currentQuestion >= questions.length) {
+                showResults();
+            } else {
+                displayQuestion();
+            }
+        }
+
+        function updateScore() {
+            document.getElementById('current-q').textContent = currentQuestion + 1;
+            document.getElementById('total-q').textContent = questions.length;
+            document.getElementById('score').textContent = score;
+            document.getElementById('streak').textContent = streak;
+        }
+
+        function showResults() {
+            document.getElementById('quiz-section').classList.add('hidden');
+            document.getElementById('results-section').classList.remove('hidden');
+            
+            const percentage = Math.round((score / questions.length) * 100);
+            document.getElementById('final-percentage').textContent = `${percentage}%`;
+            
+            let message = '';
+            if (percentage >= 90) {
+                message = '🎉 Outstanding! You have excellent understanding of immigration ethics!';
+            } else if (percentage >= 80) {
+                message = '👏 Great job! You have solid grasp of ethical principles.';
+            } else if (percentage >= 70) {
+                message = '👍 Good work! Review areas where you missed questions.';
+            } else if (percentage >= 60) {
+                message = '📚 You passed, but consider reviewing the material more thoroughly.';
+            } else {
+                message = '📖 More study needed. Please review the ethics materials carefully.';
+            }
+            
+            document.getElementById('final-message').textContent = message;
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            streak = 0;
+            selectedAnswer = null;
+            answered = false;
+            
+            document.getElementById('results-section').classList.add('hidden');
+            document.getElementById('quiz-section').classList.remove('hidden');
+            
+            // Shuffle questions
+            for (let i = questions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [questions[i], questions[j]] = [questions[j], questions[i]];
+            }
+            
+            displayQuestion();
+            updateScore();
+        }
+
+        // Start the quiz
+        init();
+    </script>
+</body>
+</html>
