@@ -132,13 +132,13 @@
 
         .enemy {
             position: absolute;
-            color: #ff4444;
+            color: #FFD700; /* Neutral gold color initially */
             font-weight: bold;
             font-size: 14px;
-            background: rgba(255, 68, 68, 0.2);
+            background: rgba(255, 215, 0, 0.2);
             padding: 8px;
             border-radius: 8px;
-            border: 2px solid #ff4444;
+            border: 2px solid #FFD700;
             cursor: crosshair;
             transition: all 0.3s;
             max-width: 200px;
@@ -272,7 +272,7 @@
 
         <!-- Instructions -->
         <div class="instructions">
-            🚀 Use MOUSE to move • CLICK to shoot • Destroy WRONG answers • Save CORRECT answers! 🎯
+            🚀 Use MOUSE to move • CLICK to shoot • Destroy WRONG answers • Let CORRECT answers escape! 🎯
         </div>
 
         <!-- Spaceship -->
@@ -498,7 +498,7 @@
             
             spawnEnemy(text, isCorrect) {
                 const enemy = document.createElement('div');
-                enemy.className = 'enemy' + (isCorrect ? ' correct' : '');
+                enemy.className = 'enemy'; // Remove color indication - all look the same initially
                 enemy.textContent = text;
                 
                 const x = Math.random() * (window.innerWidth - 200);
@@ -566,10 +566,12 @@
                     // Check if enemy reached bottom
                     if (enemy.y > window.innerHeight) {
                         if (enemy.isCorrect) {
-                            // Wrong! Player let correct answer escape
-                            this.loseLife();
+                            // Good! Correct answer escaped safely
+                            this.showFeedback('✅ Correct answer escaped safely!', true);
                         } else {
-                            // Good! Wrong answer escaped
+                            // Bad! Wrong answer escaped
+                            this.loseLife();
+                            this.showFeedback('❌ Wrong answer escaped! You lost a life!', false);
                         }
                         enemy.element.remove();
                         this.enemies.splice(index, 1);
@@ -593,19 +595,39 @@
             }
             
             handleHit(enemy, index) {
+                // Show the answer result by changing color
                 if (enemy.isCorrect) {
-                    // Wrong! Player shot correct answer
+                    // Wrong! Player shot correct answer - show as green (what they destroyed)
+                    enemy.element.classList.add('correct');
                     this.loseLife();
                     this.streak = 0;
                     this.createExplosion(enemy.x, enemy.y, '💥');
+                    
+                    // Show feedback
+                    setTimeout(() => {
+                        this.showFeedback('❌ Wrong! You destroyed the CORRECT answer!', false);
+                    }, 100);
                 } else {
-                    // Good! Player shot wrong answer
+                    // Good! Player shot wrong answer - show as red (what they destroyed)
+                    enemy.element.style.color = '#ff4444';
+                    enemy.element.style.borderColor = '#ff4444';
+                    enemy.element.style.background = 'rgba(255, 68, 68, 0.2)';
+                    
                     this.score += 100;
                     this.streak++;
                     this.createExplosion(enemy.x, enemy.y, '⭐');
+                    
+                    // Show feedback
+                    setTimeout(() => {
+                        this.showFeedback('✅ Great! You destroyed a WRONG answer!', true);
+                    }, 100);
                 }
                 
-                enemy.element.remove();
+                // Remove enemy after brief delay to show color change
+                setTimeout(() => {
+                    enemy.element.remove();
+                }, 300);
+                
                 this.enemies.splice(index, 1);
                 this.updateUI();
             }
@@ -644,14 +666,58 @@
                 }
             }
             
+            showFeedback(message, isGood) {
+                const feedback = document.createElement('div');
+                feedback.style.position = 'absolute';
+                feedback.style.top = '200px';
+                feedback.style.left = '50%';
+                feedback.style.transform = 'translateX(-50%)';
+                feedback.style.background = isGood ? 'rgba(0, 255, 65, 0.9)' : 'rgba(255, 68, 68, 0.9)';
+                feedback.style.color = 'white';
+                feedback.style.padding = '10px 20px';
+                feedback.style.borderRadius = '10px';
+                feedback.style.fontSize = '16px';
+                feedback.style.fontWeight = 'bold';
+                feedback.style.zIndex = '250';
+                feedback.style.border = isGood ? '2px solid #00ff41' : '2px solid #ff4444';
+                feedback.style.boxShadow = isGood ? '0 0 15px #00ff41' : '0 0 15px #ff4444';
+                feedback.textContent = message;
+                
+                this.container.appendChild(feedback);
+                
+                // Remove feedback after 2 seconds
+                setTimeout(() => {
+                    feedback.remove();
+                }, 2000);
+            }
+            
             showLevelComplete() {
+                // Calculate accuracy for this level
+                const questionsCompleted = this.currentQuestion;
+                const maxScore = questionsCompleted * 500; // Potential score if perfect
+                const accuracy = Math.round((this.score / maxScore) * 100);
+                
+                let message = '';
+                if (accuracy >= 90) {
+                    message = '🎯 PERFECT ETHICS DEFENDER! 🎯';
+                } else if (accuracy >= 80) {
+                    message = '⭐ EXCELLENT WORK! ⭐';
+                } else if (accuracy >= 70) {
+                    message = '👍 GOOD JOB! 👍';
+                } else if (accuracy >= 60) {
+                    message = '📚 NEEDS IMPROVEMENT 📚';
+                } else {
+                    message = '💥 STUDY MORE! 💥';
+                }
+                
                 const levelComplete = document.createElement('div');
                 levelComplete.className = 'level-complete';
                 levelComplete.innerHTML = `
-                    <h2>🎯 LEVEL COMPLETE! 🎯</h2>
-                    <p>Great job defending immigration ethics!</p>
+                    <h2>${message}</h2>
+                    <p>Level ${this.level} Complete!</p>
+                    <p>Accuracy: ${accuracy}%</p>
                     <p>Bonus: +500 points</p>
-                    <button class="continue-btn" onclick="game.continueTo NextLevel()">Continue to Level ${this.level + 1}</button>
+                    <button class="continue-btn" onclick="game.continueToNextLevel()">Continue to Level ${this.level + 1}</button>
                 `;
                 
                 this.container.appendChild(levelComplete);
